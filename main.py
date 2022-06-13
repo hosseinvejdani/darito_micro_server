@@ -23,29 +23,29 @@ def generate_random_code():
       list.append(str(random.randint(0,9)))
    return ''.join(list)
 
-def saveToDB(number: str, token: str):
-    createdAt = datetime.datetime.utcnow()
-    result = tokens.insert_one({"number":number,"token":token,"createdAt":createdAt})
-    return result
+# def saveToDB(number: str, token: str):
+#     createdAt = datetime.datetime.utcnow()
+#     result = tokens.insert_one({"number":number,"token":token,"createdAt":createdAt})
+#     return result
 
 
-def addNewUserIfNotExist(number:str):
-    result = users.find_one({"number":number})
-    dateTime = datetime.datetime.utcnow()
-    if result == None:
-        users.insert_one({"number":number,"lastLogin":dateTime})
-    else:
-        newvalue = {"$set":{"lastLogin": dateTime}}
-        users.update_one({"number":number},newvalue)
+# def addNewUserIfNotExist(number:str):
+#     result = users.find_one({"number":number})
+#     dateTime = datetime.datetime.utcnow()
+#     if result == None:
+#         users.insert_one({"number":number,"lastLogin":dateTime})
+#     else:
+#         newvalue = {"$set":{"lastLogin": dateTime}}
+#         users.update_one({"number":number},newvalue)
 
 
-def check_token_validation(number:str,token:str):
-    result = tokens.find_one({"number":number,"token":token})
-    if result == None:
-        return False
+# def check_token_validation(number:str,token:str):
+#     result = tokens.find_one({"number":number,"token":token})
+#     if result == None:
+#         return False
 
-    addNewUserIfNotExist(number)
-    return True
+#     addNewUserIfNotExist(number)
+#     return True
 
 
 # ==============================================================
@@ -83,18 +83,24 @@ def send_verification_sms(phone_number:PhoneNumber):
     response = requests.post(sms_url, headers=sms_headers, json=data)
     # ------------------------------------
     if response.status_code == 200:
-        saveToDB(number = number, token = token)
-        return {"response":"ok"}
+        # saveToDB(number = number, token = token)
+        return {"token":token}
     #
-    return {"response":"Not ok"}
+    return {"token":"---","error":"there was an error while sending message! please try again..."}
 
 
-@app.post("/verify_otp_token")
-def verify_otp_token(phone_number:PhoneNumber):
-    number = phone_number.number
-    token = phone_number.token
-    #---------------
-    is_valid_token = check_token_validation(number, token)
-    return {"isValid":is_valid_token}
+# TODO : remove this 
+# @app.post("/verify_otp_token")
+# def verify_otp_token(phone_number:PhoneNumber):
+#     number = phone_number.number
+#     token = phone_number.token
+#     #---------------
+#     is_valid_token = check_token_validation(number, token)
+#     return {"isValid":is_valid_token}
 
 
+# TODO : add new method for adding new user to database 
+
+# TODO : add new method for updating user in database
+
+# TODO : add new method for changing number for user in all docs in database 
