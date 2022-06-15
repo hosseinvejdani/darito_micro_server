@@ -34,19 +34,18 @@ def addNewUserIfNotExistOrUpdateLoginInfo(number:str):
     dateTime = datetime.datetime.utcnow()
     if result == None:
         response = users.insert_one({"number":number,"lastLogin":dateTime})
-        return {"response":response}
+        return {"result":"added new user to the database successfully."}
     else:
         newvalue = {"$set":{"lastLogin": dateTime}}
         response = users.update_one({"number":number},newvalue)
-        return {"response":response}
+        return {"result":"user number was exists on the database.so the user lastLogin info updated successfully."}
 
 
 def changePhoneNumber(old_number:str,new_number:str):
     newvalue = {"$set":{"number": new_number}}
     response = users.update_one({"number":old_number},newvalue)
     #
-    # TODO : you should also apply change for all other recodrs in future
-    return {"response":response}
+    return {"result":f"The number {old_number} was deleted from database and added {new_number} as new user phone number"}
 
 
 
@@ -104,6 +103,7 @@ def change_user_number(numbers:ChangePhoneNumber):
     new_number = numbers.new_number
     #---------------
     response = changePhoneNumber(old_number,new_number)
+
     return {"response":response}
 
 
