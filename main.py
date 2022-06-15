@@ -1,3 +1,5 @@
+from ast import Not
+from urllib import response
 from fastapi import FastAPI, Body
 from pydantic import BaseModel
 from typing import Optional
@@ -15,7 +17,10 @@ sms_headers = {"Content-Type": "application/json","X-API-KEY": "dFPwXdS4B5TTLqQu
 
 class PhoneNumber(BaseModel):
     number:str 
-    token:Optional[str] = None
+
+class ChangePhoneNumber(BaseModel):
+    old_number: str
+    new_number: str
 
 def generate_random_code():
    list = [str(random.randint(1,9))]
@@ -23,29 +28,27 @@ def generate_random_code():
       list.append(str(random.randint(0,9)))
    return ''.join(list)
 
-# def saveToDB(number: str, token: str):
-#     createdAt = datetime.datetime.utcnow()
-#     result = tokens.insert_one({"number":number,"token":token,"createdAt":createdAt})
-#     return result
+
+def addNewUserIfNotExistOrUpdateLoginInfo(number:str):
+    result = users.find_one({"number":number})
+    dateTime = datetime.datetime.utcnow()
+    if result == None:
+        response = users.insert_one({"number":number,"lastLogin":dateTime})
+        return {"response":response}
+    else:
+        newvalue = {"$set":{"lastLogin": dateTime}}
+        response = users.update_one({"number":number},newvalue)
+        return {"response":response}
 
 
-# def addNewUserIfNotExist(number:str):
-#     result = users.find_one({"number":number})
-#     dateTime = datetime.datetime.utcnow()
-#     if result == None:
-#         users.insert_one({"number":number,"lastLogin":dateTime})
-#     else:
-#         newvalue = {"$set":{"lastLogin": dateTime}}
-#         users.update_one({"number":number},newvalue)
+def changePhoneNumber(old_number:str,new_number:str):
+    newvalue = {"$set":{"number": new_number}}
+    response = users.update_one({"number":old_number},newvalue)
+    #
+    # TODO : you should also apply change for all other recodrs in future
+    return {"response":response}
 
 
-# def check_token_validation(number:str,token:str):
-#     result = tokens.find_one({"number":number,"token":token})
-#     if result == None:
-#         return False
-
-#     addNewUserIfNotExist(number)
-#     return True
 
 
 # ==============================================================
@@ -68,7 +71,7 @@ def send_verification_sms(phone_number:PhoneNumber):
     number = phone_number.number
     token = generate_random_code()
 
-    # # ------------------------------------
+    # ------------------------------------
     data =   {
         "mobile": number[3:],
         "templateId": 782582,
@@ -83,24 +86,26 @@ def send_verification_sms(phone_number:PhoneNumber):
     response = requests.post(sms_url, headers=sms_headers, json=data)
     # ------------------------------------
     if response.status_code == 200:
-        # saveToDB(number = number, token = token)
         return {"token":token}
     #
-    return {"token":"---","error":"there was an error while sending message! please try again..."}
+    return {"token": None,"error":"there was an error while sending message! please try again..."}
 
 
-# TODO : remove this 
-# @app.post("/verify_otp_token")
-# def verify_otp_token(phone_number:PhoneNumber):
-#     number = phone_number.number
-#     token = phone_number.token
-#     #---------------
-#     is_valid_token = check_token_validation(number, token)
-#     return {"isValid":is_valid_token}
+@app.post("/add_user_or_update_login_info")
+def add_user_or_update_login_info(phone_number:PhoneNumber):
+    number = phone_number.number
+    #---------------
+    response = addNewUserIfNotExistOrUpdateLoginInfo(number=number)
+    return {"response":response}
+
+@app.post("/change_user_number")
+def change_user_number(numbers:ChangePhoneNumber):
+    old_number = numbers.old_number
+    new_number = numbers.new_number
+    #---------------
+    response = changePhoneNumber(old_number,new_number)
+    return {"response":response}
 
 
-# TODO : add new method for adding new user to database 
 
-# TODO : add new method for updating user in database
 
-# TODO : add new method for changing number for user in all docs in database 
