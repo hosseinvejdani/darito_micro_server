@@ -63,13 +63,16 @@ app = FastAPI()
 def get_latest_version():
     return {"latest_version": "1.2.0"}
 
+@app.get("/get_total_userss")
+def get_total_userss():
+    count = users.count_documents({})
+    return {"total_userss": count}
+
 
 @app.post("/send_verification_sms")
 def send_verification_sms(phone_number:PhoneNumber = Body(default=None)):
 
     number = phone_number.number
-    print("-------------------------------saddsa",phone_number)
-    print("-------------------------------saddsa",number)
     token = generate_random_code()
 
     # ------------------------------------
