@@ -7,11 +7,12 @@ import random
 import requests
 from pymongo import MongoClient
 import datetime
+import constants
 
 
 # sms.ir configuration
-sms_url = "https://api.sms.ir/v1/send/verify"
-sms_headers = {"Content-Type": "application/json","X-API-KEY": "dFPwXdS4B5TTLqQuZ5QCNyoBzwa1GtkCqhMVb25nf5NUFEYlAM3Aa38mNS0iKnfv"}
+sms_url = constants.sms_url
+sms_headers = {"Content-Type": "application/json","X-API-KEY": constants.X_API_KEY}
 
 
 
