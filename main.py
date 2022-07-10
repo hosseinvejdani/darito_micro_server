@@ -1,8 +1,5 @@
-from ast import Not
-from urllib import response
 from fastapi import FastAPI, Body
 from pydantic import BaseModel
-from typing import Optional
 import random
 import requests
 from pymongo import MongoClient
