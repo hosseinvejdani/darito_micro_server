@@ -63,8 +63,8 @@ app = FastAPI()
 def get_latest_version():
     return {"latest_version": "1.2.0"}
 
-@app.get("/get_total_userss")
-def get_total_userss():
+@app.get("/get_total_users")
+def get_total_users():
     count = users.count_documents({})
     return {"total_userss": count}
 
