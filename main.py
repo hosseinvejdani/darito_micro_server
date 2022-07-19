@@ -1,3 +1,4 @@
+from email import message
 from fastapi import FastAPI, Body
 from pydantic import BaseModel
 import random
@@ -12,6 +13,11 @@ sms_url = constants.sms_url
 sms_headers = {"Content-Type": "application/json","X-API-KEY": constants.X_API_KEY}
 
 
+
+class Unknown_SMS(BaseModel):
+    userNumber:str
+    problem:str 
+    boy:str 
 
 class PhoneNumber(BaseModel):
     number:str 
@@ -28,20 +34,20 @@ def generate_random_code():
 
 
 def addNewUserIfNotExistOrUpdateLoginInfo(number:str):
-    result = users.find_one({"number":number})
+    result = users_collection.find_one({"number":number})
     dateTime = datetime.datetime.utcnow()
     if result == None:
-        response = users.insert_one({"number":number,"lastLogin":dateTime})
+        response = users_collection.insert_one({"number":number,"lastLogin":dateTime})
         return {"result":"added new user to the database successfully."}
     else:
         newvalue = {"$set":{"lastLogin": dateTime}}
-        response = users.update_one({"number":number},newvalue)
+        response = users_collection.update_one({"number":number},newvalue)
         return {"result":"user number was exists on the database.so the user lastLogin info updated successfully."}
 
 
 def changePhoneNumber(old_number:str,new_number:str):
     newvalue = {"$set":{"number": new_number}}
-    response = users.update_one({"number":old_number},newvalue)
+    response = users_collection.update_one({"number":old_number},newvalue)
     #
     return {"result":f"The number {old_number} was deleted from database and added {new_number} as new user phone number"}
 
@@ -52,18 +58,29 @@ def changePhoneNumber(old_number:str,new_number:str):
 # ==============================================================
 client = MongoClient("mongodb://localhost:27017")
 database = client["darito"]
-tokens = database["token"]
-users = database["user"]
+unkhnown_sms_collection = database["unkhnown_sms"]
+users_collection = database["user"]
 #
 app = FastAPI()
 
+@app.get("/get_update_message")
+def get_update_message():
+    target_version = "<=1.5.0" # or "any"
+    repeat = True
+    title = "به روز رسانی مهم"
+    message = "کاربر گرامی، با توجه به ارتقاء سرور های داریتو در جهت بهبود کیفیت خدمات به شما عزیزان، به روز رسانی جدید در کافه بازار منشتر شد. لذا جهت حفظ اطلاعات ثبت شده در اپلیکیشن لازم است نسخه جدید را نصب نمایید."
+    hard_update = True
+    #
+    data = {"target_version": target_version,"repeat":repeat, "title":title,"message":message,"hard_update":hard_update}
+    return data
+
 @app.get("/get_latest_version")
 def get_latest_version():
-    return {"latest_version": "1.2.0"}
+    return {"latest_version": "1.5.0"}
 
 @app.get("/get_total_users")
 def get_total_users():
-    count = users.count_documents({})
+    count = users_collection.count_documents({})
     return {"total_userss": count}
 
 
@@ -111,4 +128,9 @@ def change_user_number(numbers:ChangePhoneNumber):
 
 
 
+@app.post("/add_unkhnown_sms")
+def add_unkhnown_sms(unknown_sms:Unknown_SMS):
+    dateTime = datetime.datetime.utcnow()
+    result = unkhnown_sms_collection.insert_one({"userNumber":unknown_sms.userNumber,"problem":unknown_sms.problem,"body":unknown_sms.boy,"onSave":dateTime})
+    return {"response":"unkhnown_sms added successfully to the database"}
 
