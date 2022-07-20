@@ -17,7 +17,7 @@ sms_headers = {"Content-Type": "application/json","X-API-KEY": constants.X_API_K
 class Unknown_SMS(BaseModel):
     userNumber:str
     problem:str 
-    boy:str 
+    body:str 
 
 class PhoneNumber(BaseModel):
     number:str 
@@ -65,7 +65,8 @@ app = FastAPI()
 
 @app.get("/get_update_message")
 def get_update_message():
-    target_version = "<=1.5.0" # or "any"
+    # target_version = ["1.2.0","1.4.0","1.5.0","1.6.1"] # or "any"
+    target_version = [] # or "any"
     repeat = True
     title = "به روز رسانی مهم"
     message = "کاربر گرامی، با توجه به ارتقاء سرور های داریتو در جهت بهبود کیفیت خدمات به شما عزیزان، به روز رسانی جدید در کافه بازار منشتر شد. لذا جهت حفظ اطلاعات ثبت شده در اپلیکیشن لازم است نسخه جدید را نصب نمایید."
