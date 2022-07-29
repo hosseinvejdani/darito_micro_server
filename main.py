@@ -77,7 +77,7 @@ def get_update_message():
 
 @app.get("/get_latest_version")
 def get_latest_version():
-    return {"latest_version": "1.5.0"}
+    return {"latest_version": "1.6.1"}
 
 @app.get("/get_total_users")
 def get_total_users():
