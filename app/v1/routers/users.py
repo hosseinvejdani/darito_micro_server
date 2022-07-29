@@ -1,5 +1,5 @@
-from email import message
-from fastapi import FastAPI, Body
+from fastapi import APIRouter
+from fastapi import Body
 from pydantic import BaseModel
 import random
 import requests
@@ -7,10 +7,16 @@ from pymongo import MongoClient
 import datetime
 import constants
 
-
 # sms.ir configuration
 sms_url = constants.sms_url
 sms_headers = {"Content-Type": "application/json","X-API-KEY": constants.X_API_KEY}
+
+# ==============================================================
+# ==============================================================
+client = MongoClient("mongodb://localhost:27017")
+database = client["darito"]
+unkhnown_sms_collection = database["unkhnown_sms"]
+users_collection = database["user"]
 
 
 
@@ -25,6 +31,10 @@ class PhoneNumber(BaseModel):
 class ChangePhoneNumber(BaseModel):
     old_number: str
     new_number: str
+
+
+
+
 
 def generate_random_code():
    list = [str(random.randint(1,9))]
@@ -52,18 +62,10 @@ def changePhoneNumber(old_number:str,new_number:str):
     return {"result":f"The number {old_number} was deleted from database and added {new_number} as new user phone number"}
 
 
+router = APIRouter()
 
 
-# ==============================================================
-# ==============================================================
-client = MongoClient("mongodb://localhost:27017")
-database = client["darito"]
-unkhnown_sms_collection = database["unkhnown_sms"]
-users_collection = database["user"]
-#
-app = FastAPI()
-
-@app.get("/get_update_message")
+@router.get("/get_update_message/")
 def get_update_message():
     # target_version = ["1.2.0","1.4.0","1.5.0","1.6.1"] # or "any"
     target_version = [] # or "any"
@@ -75,17 +77,17 @@ def get_update_message():
     data = {"target_version": target_version,"repeat":repeat, "title":title,"message":message,"hard_update":hard_update}
     return data
 
-@app.get("/get_latest_version")
+@router.get("/get_latest_version/")
 def get_latest_version():
     return {"latest_version": "1.6.2"}
 
-@app.get("/get_total_users")
+@router.get("/get_total_users/")
 def get_total_users():
     count = users_collection.count_documents({})
     return {"total_userss": count}
 
 
-@app.post("/send_verification_sms")
+@router.post("/send_verification_sms/")
 def send_verification_sms(phone_number:PhoneNumber = Body(default=None)):
 
     number = phone_number.number
@@ -111,14 +113,14 @@ def send_verification_sms(phone_number:PhoneNumber = Body(default=None)):
     return {"token": None,"error":"there was an error while sending message! please try again..."}
 
 
-@app.post("/add_user_or_update_login_info")
+@router.post("/add_user_or_update_login_info/")
 def add_user_or_update_login_info(phone_number:PhoneNumber):
     number = phone_number.number
     #---------------
     response = addNewUserIfNotExistOrUpdateLoginInfo(number=number)
     return {"response":response}
 
-@app.post("/change_user_number")
+@router.post("/change_user_number/")
 def change_user_number(numbers:ChangePhoneNumber):
     old_number = numbers.old_number
     new_number = numbers.new_number
@@ -129,9 +131,11 @@ def change_user_number(numbers:ChangePhoneNumber):
 
 
 
-@app.post("/add_unkhnown_sms")
+@router.post("/add_unkhnown_sms/")
 def add_unkhnown_sms(unknown_sms:Unknown_SMS):
     dateTime = datetime.datetime.utcnow()
     result = unkhnown_sms_collection.insert_one({"userNumber":unknown_sms.userNumber,"problem":unknown_sms.problem,"body":unknown_sms.boy,"onSave":dateTime})
     return {"response":"unkhnown_sms added successfully to the database"}
+
+
 
