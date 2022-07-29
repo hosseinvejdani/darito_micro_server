@@ -4,7 +4,7 @@
 env/
 test.py
 ### deta ###
-constants.py
+# constants.py
 
 
 ### Python ###
