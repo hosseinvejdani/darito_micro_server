@@ -1,8 +1,8 @@
 import datetime
 import random
 from fastapi import APIRouter, Body, Request
+from app import constants
 from app.v2.models.models import PhoneNumber, Unknown_SMS
-import constants
 from pymongo import MongoClient
 
 

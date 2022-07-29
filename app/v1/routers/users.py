@@ -3,9 +3,9 @@ from fastapi import Body
 from pydantic import BaseModel
 import random
 import requests
+from app import constants
 from pymongo import MongoClient
 import datetime
-import constants
 
 # sms.ir configuration
 sms_url = constants.sms_url
