@@ -1,6 +1,7 @@
 import datetime
 import random
-from fastapi import APIRouter, Body, Request
+from fastapi import APIRouter, Body
+import requests 
 from app import constants
 from app.v2.models.models import PhoneNumber, Unknown_SMS
 from pymongo import MongoClient
@@ -43,7 +44,7 @@ def send_verification_sms(phone_number:PhoneNumber = Body(default=None)):
         ]
     }
     
-    response = Request.post(sms_url, headers=sms_headers, json=data)
+    response = requests.post(sms_url, headers=sms_headers, json=data)
     # ------------------------------------
     if response.status_code == 200:
         return {"token":token}
@@ -53,5 +54,5 @@ def send_verification_sms(phone_number:PhoneNumber = Body(default=None)):
 @router.post("/sms/add_unkhnown_sms/")
 def add_unkhnown_sms(unknown_sms:Unknown_SMS):
     dateTime = datetime.datetime.utcnow()
-    result = unkhnown_sms_collection.insert_one({"userNumber":unknown_sms.userNumber,"problem":unknown_sms.problem,"body":unknown_sms.boy,"onSave":dateTime})
+    result = unkhnown_sms_collection.insert_one({"userNumber":unknown_sms.userNumber,"problem":unknown_sms.problem,"body":unknown_sms.body,"onSave":dateTime})
     return {"response":"unkhnown_sms added successfully to the database"}

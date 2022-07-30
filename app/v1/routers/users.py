@@ -7,19 +7,6 @@ from app import constants
 from pymongo import MongoClient
 import datetime
 
-# sms.ir configuration
-sms_url = constants.sms_url
-sms_headers = {"Content-Type": "application/json","X-API-KEY": constants.X_API_KEY}
-
-# ==============================================================
-# ==============================================================
-client = MongoClient("mongodb://localhost:27017")
-database = client["darito"]
-unkhnown_sms_collection = database["unkhnown_sms"]
-users_collection = database["user"]
-
-
-
 class Unknown_SMS(BaseModel):
     userNumber:str
     problem:str 
@@ -33,7 +20,16 @@ class ChangePhoneNumber(BaseModel):
     new_number: str
 
 
+# sms.ir configuration
+sms_url = constants.sms_url
+sms_headers = {"Content-Type": "application/json","X-API-KEY": constants.X_API_KEY}
 
+# ==============================================================
+# ==============================================================
+client = MongoClient("mongodb://localhost:27017")
+database = client["darito"]
+unkhnown_sms_collection = database["sms"]
+users_collection = database["user"]
 
 
 def generate_random_code():
@@ -134,7 +130,7 @@ def change_user_number(numbers:ChangePhoneNumber):
 @router.post("/add_unkhnown_sms/")
 def add_unkhnown_sms(unknown_sms:Unknown_SMS):
     dateTime = datetime.datetime.utcnow()
-    result = unkhnown_sms_collection.insert_one({"userNumber":unknown_sms.userNumber,"problem":unknown_sms.problem,"body":unknown_sms.boy,"onSave":dateTime})
+    result = unkhnown_sms_collection.insert_one({"userNumber":unknown_sms.userNumber,"problem":unknown_sms.problem,"body":unknown_sms.body,"onSave":dateTime})
     return {"response":"unkhnown_sms added successfully to the database"}
 
 

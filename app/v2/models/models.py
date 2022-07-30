@@ -1,4 +1,5 @@
 
+from datetime import datetime
 from pydantic import BaseModel
 
 class Unknown_SMS(BaseModel):
@@ -12,3 +13,18 @@ class PhoneNumber(BaseModel):
 class ChangePhoneNumber(BaseModel):
     old_number: str
     new_number: str
+
+
+
+# a User class with name,phone,email,birthdate,registerdated,lastlogin,isvip,isAuthorized,isActive,referalcode
+class User(BaseModel):
+    name: str = None
+    phone: str = None
+    email: str = None
+    birthDate: datetime = None
+    registerDate: datetime = None
+    lastLogin: datetime = None
+    referalCode: str = None
+    isVip: bool = False
+    isAuthorized: bool = False
+    isActive: bool = False
