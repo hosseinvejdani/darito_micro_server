@@ -1,8 +1,7 @@
+from typing import List
 from fastapi import Body,APIRouter
-from pydantic import BaseModel
-from app.v2.models.models import ChangePhoneNumber, PhoneNumber, Unknown_SMS
 from pymongo import MongoClient
-import datetime
+from app.v2.models.models import User
 
 
 # ==============================================================
@@ -12,51 +11,75 @@ database = client["darito"]
 users_collection = database["user"]
 
 
-
-def addNewUserIfNotExistOrUpdateLoginInfo(number:str):
-    result = users_collection.find_one({"number":number})
-    dateTime = datetime.datetime.utcnow()
-    if result == None:
-        response = users_collection.insert_one({"number":number,"lastLogin":dateTime})
-        return {"result":"added new user to the database successfully."}
-    else:
-        newvalue = {"$set":{"lastLogin": dateTime}}
-        response = users_collection.update_one({"number":number},newvalue)
-        return {"result":"user number was exists on the database.so the user lastLogin info updated successfully."}
-
-
-def changePhoneNumber(old_number:str,new_number:str):
-    newvalue = {"$set":{"number": new_number}}
-    response = users_collection.update_one({"number":old_number},newvalue)
-    #
-    return {"result":f"The number {old_number} was deleted from database and added {new_number} as new user phone number"}
-
-
 # ==============================================================
 router = APIRouter()
 
+# a function get all users
+@router.get("/users", response_model=List[User],tags=["users"],description="Get all users")
+async def get_users():
+    users = users_collection.find()
+    return list(users)
 
-@router.get("/users/get_total_users/")
-def get_total_users():
+# a method for count all Users from Database
+@router.get("/users/count",tags=["users"],description="Count all users in database")
+def countAllUsers():
     count = users_collection.count_documents({})
-    return {"total_userss": count}
+    return {"total_users": count}
+
+# a method for getting user by userName
+@router.get("/user/{userName}",tags=["users"],description="Get user by userName")
+async def getUserByUserName(userName:str):
+    result = users_collection.find_one({"userName":userName},{'_id': 0})
+    if result == None:
+        return {"result":f"user {userName} not found"}
+    return {"user":result}
+
+# a method for checking userName availability
+@router.get("/user/availability/{userName}",tags=["users"],description="Check userName availability")
+async def checkUserNameAvailability(userName:str):
+    result = users_collection.find_one({"userName":userName},{'_id': 0})
+    if result == None:
+        return {"message":f"user {userName} is available","available":True}
+    else:
+        return {"message":f"user {userName} is not available","available":False}
+
+# a method for createUser
+@router.post("/users/create",tags=["users"],description="Create user")
+async def createUser(user: User):
+    result = users_collection.find_one({"userName":user.userName},{'_id': 0})
+    if result == None:
+        response = users_collection.insert_one(user.dict())
+        return {"result":"user was added to the database successfully."}
+    else:
+        return {"result":"user was exists on the database."}
 
 
-@router.post("/users/add_user_or_update_login_info/")
-def add_user_or_update_login_info(phone_number:PhoneNumber):
-    number = phone_number.number
-    #---------------
-    response = addNewUserIfNotExistOrUpdateLoginInfo(number=number)
-    return {"response":response}
 
-@router.post("/users/change_user_number/")
-def change_user_number(numbers:ChangePhoneNumber):
-    old_number = numbers.old_number
-    new_number = numbers.new_number
-    #---------------
-    response = changePhoneNumber(old_number,new_number)
+# a mehtod updating User in Database
+@router.put("/users/update/{userName}",tags=["users"],description="Update user in database")
+async def updateUser(userName:str,user: User):
+    result = users_collection.find_one({"userName":userName},{'_id': 0})
+    if result == None:
+        return {"result":f"user {userName} not found"}
+    else:
+        newvalue = {"$set":user.dict()}
+        response = users_collection.update_one({"userName":userName},newvalue)
+        return {"message":f"user {userName} was updated successfully.","new_user":newvalue}
 
-    return {"response":response}
+
+
+# a method for delete User From Database
+@router.delete("/users/delete/{userName}",tags=["users"],description="Delete user from database")
+async def deleteUser(userName:str):    
+    result = users_collection.find_one({"userName":userName},{'_id': 0})
+    if result == None:
+        return {"result":f"user {userName} not found"}
+    else:
+        response = users_collection.delete_one({"userName":userName})
+        return {"result":f"user {userName} was deleted from database successfully."} 
+
+
+
 
 
 

@@ -16,11 +16,10 @@ class ChangePhoneNumber(BaseModel):
 
 
 
-# a User class with name,phone,email,birthdate,registerdated,lastlogin,isvip,isAuthorized,isActive,referalcode
 class User(BaseModel):
+    userName: str
+    isRegisteredByPhoneNumber: bool
     name: str = None
-    phone: str = None
-    email: str = None
     birthDate: datetime = None
     registerDate: datetime = None
     lastLogin: datetime = None
